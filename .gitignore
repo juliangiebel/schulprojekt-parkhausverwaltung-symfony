@@ -51,3 +51,9 @@
 # Embedded web-server pid file
 /.web-server-pid
 .vscode/
+
+###> squizlabs/php_codesniffer ###
+/.phpcs-cache
+/phpcs.xml
+###< squizlabs/php_codesniffer ###
+node_modules
