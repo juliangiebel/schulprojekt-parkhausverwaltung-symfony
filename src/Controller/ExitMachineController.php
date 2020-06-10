@@ -13,7 +13,7 @@ class ExitMachineController extends AbstractController
     public function index()
     {
         return $this->render('exit_machine/index.html.twig', [
-            'controller_name' => 'ExitMachineController',
+            'libPath' => '../../../public/lib',
         ]);
     }
 }

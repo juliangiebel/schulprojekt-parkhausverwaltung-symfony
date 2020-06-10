@@ -13,7 +13,7 @@ class EntryMachineController extends AbstractController
     public function index()
     {
         return $this->render('entry_machine/index.html.twig', [
-            'controller_name' => 'EntryMachineController',
+            'libPath' => '../../../public/lib',
         ]);
     }
 }

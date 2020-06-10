@@ -3,7 +3,7 @@
 {% block title %}Automat Einfahrt{% endblock title %}
 
 {% block customCss %}
-<link rel="stylesheet" type="text/css" href="/projekt-parkhaus/lib/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="{{ libPath }}/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 <style>
 body {
@@ -123,10 +123,10 @@ body {
 {% endblock htmlBody %}
 
 {% block customJs %}
-<script type="text/javascript" src="/projekt-parkhaus/lib/jquery-3.3.1.min.js"></script>
-<script type="text/javascript" src="/projekt-parkhaus/lib/bootstrap.min.js"></script>
-<script type="text/javascript" src="/projekt-parkhaus/lib/LicensePlate.js"></script>
-<script type="text/javascript" src="/projekt-parkhaus/lib/Display.js"></script>
+<script type="text/javascript" src="{{ libPath }}/js/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="{{ libPath }}/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{{ libPath }}/js/LicensePlate.js"></script>
+<script type="text/javascript" src="{{ libPath }}/js/Display.js"></script>
 <script>
     window.onload = function() {
 
