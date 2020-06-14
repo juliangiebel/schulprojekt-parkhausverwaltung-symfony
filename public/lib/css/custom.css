@@ -1,82 +1,52 @@
-#navigation {
-	padding: 35px 0px 35px 0px;
-	background-color: #b3d7ff;
+body {
+    width: 100%;
+    height: 100%;
+    /*background-image: url("/projekt-parkhaus/img/parkhaus.jpg");*/
+    background-size: cover;
+    background-position: top left;
+    background-repeat: no-repeat;
 }
-#footer {
-	padding: 20px 15px 20px 15px;
-	background-color: #b3d7ff;
+#wrapper {
+    position: absolute;
+    width: 720px;
+    height: 480px;
+    top: calc((100% - 480px) / 2);
+    left: calc((100% - 720px) / 2);
+    padding: 10px;
+    background-color: #c9c9c9;
 }
-@media (min-width: 1200px) {
-	.container {
-		max-width: 970px;
-	}
+#display {
+    background-color: black;
+    width: 100%;
+    height: 150px;
 }
-@media (max-width: 992px) {
-	.container {
-		max-width: 100%;
-	}
+/* Display header */
+#display-header {
+    padding: 0px 15px;
+    line-height: 30px;
+    color: navajowhite;
 }
-
-/* Page content */
-#page-content p,
-#page-content ul,
-#page-content ol {
-	font-size: 1.15em;
-	text-align: justify;
+#display-header div:nth-child(1) {
+    text-align: left;
 }
-#page-content .row.page-content-padding {
-	padding: 0 15px;
+#display-header div:nth-child(2) {
+    text-align: center;
 }
-
-/* Slogan */
-#slogan-container {
-	background-color: #b3d7ff;
-	text-align: center;
+#display-header div:nth-child(3) {
+    text-align: right;
 }
-#slogan-container > span {
-	font-size: 1.2em;
-	font-weight: bold;
+/* Display main */
+#display-main {
+    height: 90px;
+    line-height: 30px;
+    padding: 0px 15px;
+    text-align: center;
+    vertical-align: middle;
+    color: navajowhite;
 }
-#slogan-spacer {
-	height: 35px;
-	background-color: #b3d7ff;
-}
-
-.hr-spacer {
-	width: 100%;
-	height: 0px;
-	margin: 20px 0px;
-	border-top: solid 1px red;
-}
-
-/* FAQ */
-#faq .faq-arrow {
-	position: relative;
-	width: 12px;
-	height: 12px;
-	margin: 6px 10px 0px 0px;
-	float: right;
-	border-top: solid 1px black;
-	border-right: solid 1px black;
-}
-
-@keyframes faq-arrow-right {
-	0%   { transform: rotate(135deg); }
-	100% { transform: rotate(45deg);  }
-}
-@keyframes faq-arrow-down {
-	0%   { transform: rotate(45deg);  }
-	100% { transform: rotate(135deg); }
-}
-
-#faq .faq-arrow.right-first {
-	transform: rotate(45deg);
-}
-#faq .faq-arrow.right {
-	transform: rotate(45deg);
-	animation: faq-arrow-right 0.5s;
-}
-#faq .faq-arrow.down {
-	transform: rotate(135deg);
-	animation: faq-arrow-down 0.5s;
+/* Display footer */
+#display-footer {
+    padding: 0px 15px;
+    line-height: 30px;
+    color: navajowhite;
 }
