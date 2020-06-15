@@ -46,7 +46,7 @@ class Occupancy
      * @var LtParker
      *
      * @ORM\ManyToOne(targetEntity="LtParker")
-     * @ORM\JoinColumn(name="ltParker", referencedColumnName="id")
+     * @ORM\JoinColumn(name="lt_parker", referencedColumnName="id")
      */
     private $ltParker;
 
@@ -98,8 +98,13 @@ class Occupancy
 
     public function setLtParker(?LtParker $ltParker): self
     {
-        $this->ltParkerNr = $ltParker;
+        $this->ltParker = $ltParker;
 
         return $this;
     }
+
+    // public function __toString()
+    // {
+    //     return strval($this->id);
+    // }
 }

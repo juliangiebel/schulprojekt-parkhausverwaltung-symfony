@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bezahl Automat
+{% endblock %}
+{% block stylesheets %}
+	<link href="{{ asset('css/payment.css') }}" rel="stylesheet"/>
+{% endblock %}
+{% block body %}
+	<main>
+        <dialog id="ticket-loading-modal" class="floating-modal"></dialog>
+        <dialog id="ticket-instructions-modal" class="floating-modal">
+            <div class="flex flex-centered ">
+                <p>Folgen Sie den Anweisungen auf dem EC Kartenlesegeräte</p>
+            </div>
+        </dialog>
+		<div id="ticket-intro" class="flex">
+			<section id="ticket-image-section"></section>
+			<section id="ticket-input-section" class="flex flex-centered content">
+				<div class="heading">
+					<h1>Geben Sie das Ticket in den Ticketschlitz</h1>
+				</div>
+				<div>
+					<input id="ticket-code-input" type="text" placeholder="Ticket Code">
+				</div>
+				<div>
+					<sub>Feld wird auf der Maschine durch den Ticketschlitz ersetzt.</sub>
+				</div>
+			</section>
+			<section id="ticket-payment-section" class="grid grid-self-center content hidden">
+				<!--TODO: Create Grid-->
+				<div id="payment-grid-header-left" class="heading">
+					<h1>Bezahlen</h1>
+				</div>
+				<div id="payment-grid-header-right">
+					<p id="license-plate-display" class="label"></p>
+					<!--License Plate-->
+				</div>
+				<div id="payment-grid-main" class="flex flex-centered">
+					<p>Zu zahlen: <span id="price-display"></span>€</p>
+				</div>
+				<div id="payment-grid-actions" class="flex">
+					<button id="ticket-payment-cancel">Abbrechen</button>
+					<button id="ticket-payment-pay">Bezahlen</button>
+				</div>
+                <div id="payment-grid-info" class="flex">
+                    <p class="label">Eingefahren: <span id="entry-date-display"></span></p>
+                    <p class="label">Geparkt für <span id="time-parked-display"></span></p>
+                </div>
+			</section>
+			<section id="ticket-end-section" class="content hidden flex flex-center">
+				<div>
+					<h1>Vielen Dank!</h1>
+				</div>
+			</section>
+		</div>
+	</main>
+
+{% endblock %}
+
+{% block javascripts %}
+	<script type="module" src="{{ asset('js/payment.js') }}"></script>
+{% endblock %}
