@@ -12,10 +12,10 @@ const Methodes = {
         return await axios.post(`${api}${path}`, data);
     },
     delete: async function (path, id) {
-        return await axios.get(`${api}${path}/${id}`);
+        return await axios.delete(`${api}${path}/${id}`);
     },
     patch: async function (path, id, data) {
-        return await axios.get(`${api}${path}/${id}`, data);
+        return await axios.patch(`${api}${path}/${id}`, data);
     }
 
 }
