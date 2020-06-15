@@ -1,0 +1,8 @@
+:root {
+    --payment-base-color: #636b61;
+    --payment-text-color: white;
+    --dialog-background-color: white;
+    --dialog-text-color: #143939;
+    --error-color: darkred;
+    --error-text-color: white;
+}

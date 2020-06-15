@@ -1,0 +1,59 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
+main {
+  font-family: 'Roboto', sans-serif;
+}
+
+.hide {
+    opacity: 0 !important;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex.flex-centered {
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+}
+.flex.flex-centered > * {
+  align-self: center;
+}
+
+section.content {
+  opacity: 1;
+  height: 100%;
+  width: 100%;
+  background-color: var(--payment-base-color);
+  color:var(--payment-text-color);
+  transition: opacity 0.5s linear;
+}
+
+#ticket-image-section {
+  height: 100%;
+  width: 60%;
+  background-image: url(https://images.unsplash.com/photo-1572634302008-4ecafe597dee?ixlib=rb-1.2.1&q=85&fm=jpg&crop=entropy&cs=srgb&ixid=eyJhcHBfaWQiOjE0NTg5fQ);
+  background-size: cover;
+  background-position: bottom;
+}
+
+#ticket-intro {
+  width: 100vw;
+  height: 100vh;
+}
+
+#ticket-instructions-modal  {
+    font-size: 22px;
+    max-height: 50vh;
+    height: auto;
+}
+
+#error-modal {
+  font-size: 22px;
+  max-height: 50vh;
+  height: auto;
+}
