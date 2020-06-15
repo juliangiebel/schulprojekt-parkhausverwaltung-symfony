@@ -1,5 +1,6 @@
 const api = "/api"
 
+
 const Methodes = {
     getAll: async function (path) {
         return await axios.get(`${api}${path}`);
@@ -15,7 +16,9 @@ const Methodes = {
         return await axios.delete(`${api}${path}/${id}`);
     },
     patch: async function (path, id, data) {
-        return await axios.patch(`${api}${path}/${id}`, data);
+        return await axios.patch(`${api}${path}/${id}`, data, {
+            headers: {'Content-Type': 'application/merge-patch+json'}
+        });
     }
 
 }
