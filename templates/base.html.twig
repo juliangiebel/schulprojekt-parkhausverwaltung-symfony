@@ -3,10 +3,42 @@
     <head>
         <meta charset="UTF-8">
         <title>{% block title %}Welcome!{% endblock %}</title>
+        <style>
+            body {
+                margin: 0;
+            }
+        </style>
+        <link href="{{ asset('css/base.css') }}" rel="stylesheet"/>
+        <link href="{{ asset('css/colors.css') }}" rel="stylesheet"/>
         {% block stylesheets %}{% endblock %}
     </head>
     <body>
         {% block body %}{% endblock %}
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <script src="{{ asset('js/lib/moment.js') }}"></script>
+        <script>
+            moment.locale('de-relative-grammar', {
+                parentLocale: 'de',
+                relativeTime: {
+                    s  : 'ein paar Sekunden',
+                    ss : '%d Sekunden',
+                    m:  "eine Minute",
+                    mm: "%d Minuten",
+                    h:  "eine Stunde",
+                    hh: "%d Stunden",
+                    d:  "einen Tag",
+                    dd: "%d Tagen",
+                    w:  "einer Woche",
+                    ww: "%d Wochen",
+                    M:  "einem Monat",
+                    MM: "%d Monaten",
+                    y:  "einem Jahr",
+                    yy: "%d Jahren"
+                }
+            });
+
+            moment.locale('de');
+        </script>
         {% block javascripts %}{% endblock %}
     </body>
 </html>
