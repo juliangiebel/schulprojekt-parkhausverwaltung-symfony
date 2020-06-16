@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Occupancy{% endblock %}
+
+{% block body %}
+    <h1>Occupancy</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ occupancy.id }}</td>
+            </tr>
+            <tr>
+                <th>LicensePlate</th>
+                <td>{{ occupancy.licensePlate }}</td>
+            </tr>
+            <tr>
+                <th>EntryDate</th>
+                <td>{{ occupancy.entryDate ? occupancy.entryDate|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>ExitDate</th>
+                <td>{{ occupancy.exitDate ? occupancy.exitDate|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('occupancy_index') }}">back to list</a>
+
+    <a href="{{ path('occupancy_edit', {'id': occupancy.id}) }}">edit</a>
+
+    {{ include('occupancy/_delete_form.html.twig') }}
+{% endblock %}
