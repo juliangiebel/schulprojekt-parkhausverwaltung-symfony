@@ -84,6 +84,11 @@ function paymentPaid(event) {
 function paymentFinished() {
     sections.end.classList.remove("hidden");
     sections.payment.classList.add("hidden");
+
+    setTimeout(() => {
+        sections.input.classList.remove("hidden");
+        sections.end.classList.add("hidden");
+    }, 5000)
 }
 
 function calculatePrice(occupancy, rate) {
