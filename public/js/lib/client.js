@@ -26,7 +26,7 @@ async function getTicketOccupancy(ticketID) {
     let response = await Methodes.get("/tickets", ticketID)
     if(response.status != 200) {
         console.error("Status Code: " + response.status);
-        return Promise.reject(response); //TODO: Proper handling!
+        return Promise.reject(response);
     }
 
     let ticket = response.data;
@@ -34,7 +34,7 @@ async function getTicketOccupancy(ticketID) {
     response = await axios.get(ticket.occupancy);
     if(response.status != 200) {
         console.error("Status Code: " + response.status);
-        return Promise.reject(response); //TODO: Proper handling!
+        return Promise.reject(response);
     }
 
     let occupancy = response.data;
