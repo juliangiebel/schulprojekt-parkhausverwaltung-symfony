@@ -7,7 +7,9 @@
 {% endblock %}
 {% block body %}
 	<main>
-        <dialog id="ticket-loading-modal" class="floating-modal"></dialog>
+        <dialog id="ticket-loading-modal" class="floating-modal" style="background: none;">
+			<div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+		</dialog>
         <dialog id="ticket-instructions-modal" class="floating-modal">
             <div class="flex flex-centered ">
                 <p>Folgen Sie den Anweisungen auf dem EC Kartenlesegeräte</p>
@@ -32,16 +34,15 @@
 				</div>
 			</section>
 			<section id="ticket-payment-section" class="grid grid-self-center content hidden">
-				<!--TODO: Create Grid-->
-				<div id="payment-grid-header-left" class="heading">
-					<h1>Bezahlen</h1>
+				<div id="payment-grid-header-left" class="flex flex-centered-vertical">
+					<h1 class="heading">Parkhaus Bezahlvorgang</h1>
 				</div>
-				<div id="payment-grid-header-right">
+				<div id="payment-grid-header-right" class="flex flex-centered-vertical">
 					<p id="license-plate-display" class="label"></p>
 					<!--License Plate-->
 				</div>
 				<div id="payment-grid-main" class="flex flex-centered">
-					<p>Zu zahlen: <span id="price-display"></span>€</p>
+					<p>Zu zahlen: <span id="price-display"></span></p>
 				</div>
 				<div id="payment-grid-actions" class="flex">
 					<button id="ticket-payment-cancel">Abbrechen</button>
@@ -52,7 +53,7 @@
                     <p class="label">Geparkt für <span id="time-parked-display"></span></p>
                 </div>
 			</section>
-			<section id="ticket-end-section" class="content hidden flex flex-center">
+			<section id="ticket-end-section" class="content hidden flex flex-centered">
 				<div>
 					<h1>Vielen Dank!</h1>
 				</div>

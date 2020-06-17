@@ -3,7 +3,7 @@ import * as Elements from './lib/elements.js';
 
 // Variables:
 
-const rate = 2;
+const rate = 1.5;
 
 const paidTimeout = moment.duration(1, 'minutes');
 
@@ -20,6 +20,14 @@ const events = {
     "ticket-payment-cancel": {name: "click", handler: paymentCanceled}
 }
 
+const errors = {
+    ticket: {
+        404: "Ticket nicht gefunden",
+        paid: "Ticket ist schon Bezahlt",
+        invalide: "Ticket ungültig"
+    }
+}
+
 var bindings = {};
 
 var ticketID = null;
@@ -33,7 +41,7 @@ function ticketEntered(event) {
     let request  = getTicketOccupancy(ticketID);
     request.then(response => {
 
-        if (checkTicket(response.ticket)) {
+        if (checkTicket(response.ticket, response.occupancy)) {
             let entryDate = moment(response.occupancy.entryDate);
             entryDate.locale('de-relative-grammar');
 
@@ -41,14 +49,24 @@ function ticketEntered(event) {
             sections.payment.classList.remove("hidden");
 
             bindings.licensePlate(response.occupancy.licensePlate);
-            bindings.price(calculatePrice(response.occupancy, rate));
+            bindings.price(calculatePrice(response.occupancy, response.ticket, rate));
             bindings.entryDate(entryDate.format("MMMM Do YYYY, h:mm:ss"));
             bindings.timeParked(entryDate.from(moment(), true));
         }
 
+    }).catch(e => {
+
+        let status = e.response.status;
+
+        if (errors.ticket[status] !== undefined) {
+            showError(errors.ticket[status]);
+        }
+
+    }).finally(() => {
+
         bindings.loadingModal.attribute("open", null);
 
-    }).catch(e => console.log(e));
+    });
 }
 
 function paymentCanceled(event) {
@@ -91,16 +109,29 @@ function paymentFinished() {
     }, 5000)
 }
 
-function calculatePrice(occupancy, rate) {
-    //TODO: Implement price calculation
-    return "10";
+function calculatePrice(occupancy, ticket, rate) {
+
+    const checkoutDate = !!ticket.paid ? moment(ticket.paid) : moment(occupancy.entryDate);
+    const difference = Math.ceil(moment.duration(moment.utc().diff(checkoutDate.utc())).asHours());
+
+    let formatter = new Intl.NumberFormat('de-DE', {
+        style: 'currency',
+        currency: 'EUR',
+    });
+
+    return formatter.format(difference * rate);
 }
 
-function checkTicket(ticket) {
+function checkTicket(ticket, occupancy) {
     let paidDate = moment(ticket.paid);
 
     if(!!ticket.paid && moment.duration(moment().diff(paidDate)).asMilliseconds() < paidTimeout.asMilliseconds()) {
-        showError("Ticket ist schon Bezahlt")
+        showError(errors.ticket.paid)
+        return false;
+    }
+
+    if(!!occupancy.exitDate) {
+        showError(errors.ticket.invalide);
         return false;
     }
 
@@ -150,5 +181,7 @@ window.onload = function () {
     sections.payment = document.getElementById("ticket-payment-section");
     sections.end = document.getElementById("ticket-end-section");
 
+    //Assign stuff to window for debugging purposes:
     window.bindings = bindings;
+    window.sections = sections;
 };

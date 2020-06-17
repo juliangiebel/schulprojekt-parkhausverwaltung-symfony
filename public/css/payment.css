@@ -3,27 +3,6 @@ main {
   font-family: 'Roboto', sans-serif;
 }
 
-.hide {
-    opacity: 0 !important;
-}
-
-.hidden {
-    display: none !important;
-}
-
-.flex {
-  display: flex;
-}
-
-.flex.flex-centered {
-  width: 100%;
-  flex-direction: column;
-  justify-content: center;
-}
-.flex.flex-centered > * {
-  align-self: center;
-}
-
 section.content {
   opacity: 1;
   height: 100%;
@@ -31,6 +10,14 @@ section.content {
   background-color: var(--payment-base-color);
   color:var(--payment-text-color);
   transition: opacity 0.5s linear;
+}
+
+.grid .heading, .grid .label {
+  margin: 0;
+}
+
+.grid .heading {
+  margin-left: 20px;
 }
 
 #ticket-image-section {
@@ -56,4 +43,49 @@ section.content {
   font-size: 22px;
   max-height: 50vh;
   height: auto;
+}
+
+#ticket-payment-section {
+  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 4em 1fr 4em 2em;
+  grid-template-areas: "Header-Left Header-Right" "Main Main" "Actions Actions" "Info Info";
+}
+
+#payment-grid-header-left { grid-area: Header-Left; }
+
+#payment-grid-header-right {
+  grid-area: Header-Right;
+  text-align: center;
+}
+
+#payment-grid-main {
+  grid-area: Main;
+  background-color: steelblue;
+  font-size: x-large;
+  font-weight: bold;
+  box-shadow: inset;
+}
+
+#payment-grid-actions {
+  grid-area: Actions;
+  justify-content: space-around;
+  align-items: center;
+}
+
+#payment-grid-info {
+  grid-area: Info;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 20px;
+}
+
+.sf-minitoolbar{
+  display:none !important;
+}
+
+@media only screen and (max-width: 1024px) {
+  #ticket-image-section {
+    display: none;
+  }
 }
