@@ -29,8 +29,8 @@
                 <!-- Display main -->
                 <div id="display-main" class="row">
                     <div class="col-12">
-                        <div id="display-message" style="width: 100%;">Keine freien Pl&auml;tze zur Verf&uuml;gung!</div>
-                        <div style="width: 100%;">Dauerparker [<span id="display-is-ltp"> </span>]</div>
+                        <div id="display-message" style="width: 100%;">Willkommen im Parkhaus!</div>
+                        <div style="width: 100%;">Dauerparker-ID: <span id="display-ltp-id"></span></div>
                         <div style="width: 100%;">Kennzeichen: <span id="display-plate"></span></div>
                     </div>
                 </div>
@@ -58,12 +58,12 @@
                 </select>
             </div>
         </div>
-        <div class="col-3" style="margin-top: 20px; text-align: center;">
-            <label for="form-long-term">Dauerparker</label>
-            <input type="checkbox" id="form-long-term" class="form-control">
+        <div id="form-group-lt-parker" class="col-3" style="margin-top: 20px; text-align: center;">
+            <label for="form-long-term">Dauerparker-ID</label>
+            <input type="text" class="form-control" name="ltparkerid">
         </div>
         <div class="col-12" style="margin-top: 20px; text-align: center;">
-            <input type="submit" class="form-control btn btn-default btn-primary" value="Einchecken">
+            <input type="submit" id="form-check-in" class="form-control btn btn-default btn-primary" value="Einchecken">
         </div>
     </div>
 </div>
@@ -74,11 +74,13 @@
 <script type="text/javascript" src="{{ libPath }}/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="{{ libPath }}/js/LicensePlate.js"></script>
 <script type="text/javascript" src="{{ libPath }}/js/Display.js"></script>
+<script type="text/javascript" src="{{ libPath }}/js/Api.js"></script>
 <script>
     window.onload = function() {
 
         var display      = new Display('#display');
         var licensePlate = new LicensePlate();
+        var api          = new Api();
 
         display.updateDate();
         display.updateTime();
@@ -97,12 +99,107 @@
 
             licensePlate.set(updateData);
             display.setPlate(licensePlate);
+
+            if (!licensePlate.isValid()) {
+                display.setMessage('Geben Sie ein gültiges Kennzeichen ein!', {color: 'red'});
+            }
+            else if (!licensePlate.isLegal()) {
+                display.setMessage('Das Kennzeichen enthält nicht erlaubte Kombinationen!', {color: 'red'});
+            }
+            else {
+                display.setMessage('Kennzeichen ist gültig!', {color: 'green'});
+            }
         });
 
         // Event listener: form for long term
-        $('#form-long-term').on('click', () => {
-            display.setLtpState(event.target.checked);
+        $('#form-group-lt-parker').find('input').on('keyup', () => {
+            display.setLtpId(event.target.value);
+        });
+
+        // Handle submit button click event
+        $('#form-check-in').on('click', () => {
+            // Check if license plate is valid and legal
+            if (!licensePlate.isValid() || !licensePlate.isLegal()) {
+                display.setMessage('Geben Sie ein gültiges Kennzeichen ein!', {color: 'red'});
+                return;
+            }
+
+            let formLtParkerId = $('#form-group-lt-parker').find('input');
+            let ltParkerId     = formLtParkerId.val();
+
+            let isLtParker = (
+                   ltParkerId.length >= 1
+                && ltParkerId.match(/^[0-9]+$/)
+                && isLongTermParker(ltParkerId)
+            );
+
+            // Can long term parker enter
+            if (isLtParker && !canLtParkerEnter(ltParkerId)) {
+                display.setMessage('Sie können nur mit einem Auto gleichzeitig ins Parkhaus fahren!', {color: 'red'});
+                return;
+            }
+
+            // Can license plate enter
+            if (!canLicensePlateEnter(licensePlate.toString(false))) {
+                display.setMessage('Dieses Kennzeichen befindet sich bereits im Parkhaus!', {color: 'red'});
+                return;
+            }
+
+            let dataCreateOccupancy = {
+                licensePlate: licensePlate.toString(false),
+                entryDate: moment().format(),
+                exitDate: null,
+                ltParker: isLtParker ? '/api/lt_parkers/' + ltParkerId : null
+            };
+
+            let resCreateOccupancy = createOccupancy(dataCreateOccupancy);
+
+            if (!isLtParker) {
+                let resCreateTicket = createTicket({
+                    occupancy: resCreateOccupancy['@id'],
+                    paid: null
+                });
+            }
+
+            display.setMessage('Erfolgreich eingecheckt! Sie können ins Parkhaus fahren.', {color: 'green'});
         });
     };
+
+// Is the id a long term parker resource
+function isLongTermParker(id)
+{
+    let apiCall = (new Api()).callLongTermParkerById(id).send();
+    return apiCall.getStatus() === 200;
+}
+
+// Create an occupancy
+function createOccupancy(data)
+{
+    let apiCall = (new Api()).callCreateOccupancy(data).send();
+    return apiCall.getResponse();
+}
+
+// Create a ticket
+function createTicket(data)
+{
+    let apiCall = (new Api()).callCreateTicket(data).send();
+    return apiCall.getResponse();
+}
+
+// Can customer enter
+function canLtParkerEnter(ltParkerId)
+{
+    let apiCall = (new Api()).callOpenOccupancyWithLtParker(ltParkerId).send();
+//console.log(apiCall.getResponse());
+    return apiCall.getResponse()['hydra:totalItems'] == 0;
+}
+
+// Can license plate enter
+function canLicensePlateEnter(licensePlate)
+{
+    let apiCall = (new Api()).callOpenOccupancyWithLicensePlate(licensePlate).send();
+    return apiCall.getResponse()['hydra:totalItems'] == 0;
+}
+
 </script>
 {% endblock customJs %}
