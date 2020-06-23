@@ -29,7 +29,7 @@
                 <!-- Display main -->
                 <div id="display-main" class="row">
                     <div class="col-12">
-                        <div id="display-message" style="width: 100%;">Sie haben ausgecheckt!</div>
+                        <div id="display-message" style="width: 100%;">Bitte Ticket oder Karte vorlegen!</div>
                         <div style="width: 100%;">Kennzeichen: <span id="display-plate"></span></div>
                     </div>
                 </div>
@@ -39,7 +39,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12" style="margin-top: 20px;">
+        <div class="col-7" style="margin-top: 20px;">
             <label>Kennzeichen mit Zusatz</label>
             <div id="form-group-plate" class="input-group">
                 <input type="text" class="form-control" name="district">
@@ -55,8 +55,16 @@
                 </select>
             </div>
         </div>
+        <div id="form-group-lt-parker" class="col-3" style="margin-top: 20px; text-align: center;">
+            <label for="form-long-term">Dauerparker-ID</label>
+            <input type="text" class="form-control" name="ltparkerid">
+        </div>
+        <div id="form-group-ticket" class="col-2" style="margin-top: 20px; text-align: center;">
+            <label for="form-ticket">Ticket-ID</label>
+            <input type="text" class="form-control" name="ticketid">
+        </div>
         <div class="col-12" style="margin-top: 20px; text-align: center;">
-            <input type="submit" class="form-control btn btn-default btn-primary" value="Auschecken">
+            <input type="submit" id="form-check-out" class="form-control btn btn-default btn-primary" value="Auschecken">
         </div>
     </div>
 </div>
@@ -67,6 +75,7 @@
 <script type="text/javascript" src="{{ libPath }}/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="{{ libPath }}/js/LicensePlate.js"></script>
 <script type="text/javascript" src="{{ libPath }}/js/Display.js"></script>
+<script type="text/javascript" src="{{ libPath }}/js/Api.js"></script>
 <script>
     window.onload = function() {
 
@@ -90,7 +99,118 @@
 
             licensePlate.set(updateData);
             display.setPlate(licensePlate);
+
+            if (!licensePlate.isValid()) {
+                display.setMessage('Geben Sie ein gültiges Kennzeichen ein!', {color: 'red'});
+            }
+            else if (!licensePlate.isLegal()) {
+                display.setMessage('Das Kennzeichen enthält nicht erlaubte Kombinationen!', {color: 'red'});
+            }
+            else {
+                display.setMessage('Kennzeichen ist gültig!', {color: 'green'});
+            }
+        });
+
+        // Handle submit button click event
+        $('#form-check-out').on('click', () => {
+            // Check if license plate is valid and legal
+            if (!licensePlate.isValid() || !licensePlate.isLegal()) {
+                display.setMessage('Geben Sie ein gültiges Kennzeichen ein!', {color: 'red'});
+                return;
+            }
+
+            let ltParkerId = $('#form-group-lt-parker').find('input').val();
+
+            let isLtParker = (
+                   ltParkerId.length >= 1
+                && ltParkerId.match(/^[0-9]+$/)
+                && isLongTermParker(ltParkerId)
+            );
+
+            let ticketId = $('#form-group-ticket').find('input').val();
+
+            // Close occupancy for long term parker
+            if (isLtParker) {
+                closeOccupancyForLtParker(ltParkerId);
+                display.setMessage('Sie haben sich erfolgreich ausgecheckt. Auf Wiedersehen', {color: 'green'});
+                return;
+            }
+            // Close occupancy for normal parker if ticket id is set
+            else if (ticketId.length >= 1 && ticketId.match(/^[0-9]+$/)) {
+
+                let ticketData = getTicketData(ticketId);
+
+                if (ticketData['@type'] == 'hydra:Error') {
+                    display.setMessage('Das Ticket konnte nicht zugeordnet werden!', {color: 'red'});
+                    return;
+                }
+
+                if (ticketData['paid'] === undefined || moment().diff(ticketData['paid'], 'minutes') >= 20) {
+                    display.setMessage('Das Ticket wurde nicht bezahlt oder die Zeit wurde überzogen!', {color: 'red'});
+                    return;
+                }
+
+                let occupancyResource = ticketData['occupancy'];
+
+                let regexMatch  = /\/([0-9]+)$/.exec(occupancyResource);
+                let occupancyId = regexMatch[1];
+
+                closeOccupancy(occupancyId);
+                deleteTicket(ticketId);
+            }
+            // Close occupancy for normal parker with license plate
+            else {
+                let occupancyId = getOccupanyIdForLicensePlate(licensePlate.toString(false));
+            }
+
+            display.setMessage('Erfolgreich ausgecheckt. Auf Wiedersehen', {color: 'green'});
+
         });
     };
+
+
+// Is the id a long term parker resource
+function isLongTermParker(id)
+{
+    let apiCall = (new Api()).callLongTermParkerById(id).send();
+    return apiCall.getStatus() === 200;
+}
+
+// Close occupancy
+function closeOccupancyForLtParker(ltParkerId)
+{
+    let apiCall       = (new Api()).callOpenOccupancyWithLtParker(ltParkerId).send();
+    let occupancyId   = apiCall.getResponse()['hydra:member'][0]['id'];
+    let apiCallUpdate = (new Api()).callUpdateOccupancy(occupancyId, {exitDate: moment().format()}).send();
+}
+
+// Close occupancy
+function closeOccupancy(id)
+{
+    let apiCallUpdate = (new Api()).callUpdateOccupancy(id, {exitDate: moment().format()}).send();
+}
+
+// Get occupany for license plate
+function getOccupanyIdForLicensePlate(licensePlate)
+{
+    let apiCall     = (new Api()).callGetOccupancy({licensePlate: licensePlate, existsExitDate: false}).send();
+    let occupancyId = apiCall.getResponse()['hydra:member'][0]['id'];
+    return occupancyId;
+}
+
+function getTicketData(id)
+{
+    let apiCall = (new Api()).callGetTicket({id: id}).send();
+    return apiCall.getResponse();
+}
+
+function deleteTicket(id)
+{
+    let apiCall = (new Api()).callDeleteTicket(id).send();
+}
+
+
+
+
 </script>
 {% endblock customJs %}
