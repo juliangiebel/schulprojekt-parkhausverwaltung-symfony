@@ -51,14 +51,14 @@ class Display {
         this.objectDisplay.find('div#display-message').html('&nbsp;').css({width: '100%'});
     }
 
-    setLtpState(isActive)
+    setLtpId(id)
     {
-        this.objectDisplay.find('#display-is-ltp').text(isActive ? 'x' : ' ');
+        this.objectDisplay.find('#display-ltp-id').text(id);
     }
 
     setPlate(plate)
     {
-        this.objectDisplay.find('#display-plate').text(plate.toString());
+        this.objectDisplay.find('#display-plate').text(plate.toString(true));
 
         if (!plate.isValid()) {
             this.objectDisplay.find('#display-plate').css({color: 'red'});
