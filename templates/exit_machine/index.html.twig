@@ -191,6 +191,25 @@
 
                 if (ticketData['paid'] === undefined || moment().diff(ticketData['paid'], 'minutes') >= 20) {
                     display.setMessage('Das Ticket wurde nicht bezahlt oder die Zeit wurde überzogen!', {color: 'red'});
+
+                    setTimeout(() => {
+                        display.setMessage('Begleichen Sie den offenen Betrag hier!', {color: 'orange'});
+
+                        setTimeout(() => {
+                            let occupancyResource = ticketData['occupancy'];
+
+                            let regexMatch  = /\/([0-9]+)$/.exec(occupancyResource);
+                            let occupancyId = regexMatch[1];
+
+                            closeOccupancy(occupancyId);
+                            deleteTicket(ticketId);
+
+                            display.setMessage('Zahlung erfolgreich und Sie wurden ausgecheckt. Auf Wiedersehen', {color: 'green'});
+
+                        }, 2000);
+
+                    }, 2000);
+
                     return;
                 }
 
