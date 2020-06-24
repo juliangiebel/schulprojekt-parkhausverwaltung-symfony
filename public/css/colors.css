@@ -1,0 +1,14 @@
+:root {
+    /*--payment-base-color: #636b61;*/
+    --payment-base-color: dimgray;
+    --payment-text-color: white;
+    --dialog-background-color: white;
+    --dialog-text-color: #143939;
+    /*--error-color: darkred;*/
+    --error-text-color: white;
+    --button-color: steelblue;
+    --button-hover-color: #315b7d;
+    --button-text-color: #ffffff;
+    --button-focus-color: #fff;
+    --loader-color: #fff;
+}
