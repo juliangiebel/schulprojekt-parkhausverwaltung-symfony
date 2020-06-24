@@ -6,6 +6,15 @@
 <link rel="stylesheet" type="text/css" href="{{ libPath }}/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="{{ libPath }}/css/custom.css">
 <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+    .no-scroll-bar::-webkit-scrollbar {
+        display: none;
+    }
+    div#database-monitor table td {
+        padding: 5px;
+        color: #7affaa;
+    }
+</style>
 {% endblock customCss %}
 
 {% block htmlBody %}
@@ -37,7 +46,7 @@
                 <!-- Display footer -->
                 <div id="display-footer" class="row">
                     <div class="col-12">
-                        Verf&uuml;gbare Pl&auml;tze: 101
+                        Verf&uuml;gbare Pl&auml;tze: <span id="available-space">101</span>
                     </div>
                 </div>
             </div>
@@ -67,6 +76,36 @@
         </div>
     </div>
 </div>
+
+<div id="database-monitor" style="position: fixed; height: 100%; width: 400px;">
+    <div class="row">
+        <div class="col-12" style="background-color: #c9c9c9; text-align: center;">Long Term Parker</div>
+    </div>
+    <div class="row no-scroll-bar" style="height: 30%; overflow-y: scroll;">
+        <div class="col-12">
+            <table style="width: 100%;" id="database-monitor-lt-parker">
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12" style="background-color: #c9c9c9; text-align: center;">Occupancies</div>
+    </div>
+    <div class="row no-scroll-bar" style="height: 30%; overflow-y: scroll;">
+        <div class="col-12">
+            <table style="width: 100%;" id="database-monitor-occupancy">
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12" style="background-color: #c9c9c9; text-align: center;">Tickets</div>
+    </div>
+    <div class="row no-scroll-bar" style="height: 30%; overflow-y: scroll;">
+        <div class="col-12">
+            <table style="width: 100%;" id="database-monitor-ticket">
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock htmlBody %}
 
 {% block customJs %}
@@ -84,11 +123,16 @@
 
         display.updateDate();
         display.updateTime();
+        updateDatabaseMonitor();
 
         window.setInterval(() => {
             display.updateDate();
             display.updateTime();
         }, 250);
+
+        window.setInterval(() => {
+            updateDatabaseMonitor();
+        }, 2500);
 
         // Event listener: form for license plate
         $('#form-group-plate').find('input, select').on('keyup change', () => {
@@ -124,9 +168,7 @@
                 return;
             }
 
-            let formLtParkerId = $('#form-group-lt-parker').find('input');
-            let ltParkerId     = formLtParkerId.val();
-
+            let ltParkerId = $('#form-group-lt-parker').find('input').val();
             let isLtParker = (
                    ltParkerId.length >= 1
                 && ltParkerId.match(/^[0-9]+$/)
@@ -201,5 +243,71 @@ function canLicensePlateEnter(licensePlate)
     return apiCall.getResponse()['hydra:totalItems'] == 0;
 }
 
+// Update database monitor
+function updateDatabaseMonitor()
+{
+    let baseUrl = '/schulprojekt-parkhausverwaltung-symfony/public/index.php';
+
+    let dataLtParker  = (new ApiCall('get', baseUrl + '/api/lt_parkers' )).send().getResponse();
+    let dataOccupancy = (new ApiCall('get', baseUrl + '/api/occupancies')).send().getResponse();
+    let dataTicket    = (new ApiCall('get', baseUrl + '/api/tickets'    )).send().getResponse();
+
+    // Update Display
+    let apiCall = (new Api()).callGetOccupancy({existsExitDate: false}).send();
+    $('#available-space').text((180 - apiCall.getResponse()['hydra:totalItems']));
+
+    let tableLtParker  = $('#database-monitor-lt-parker');
+    let tableOccupancy = $('#database-monitor-occupancy');
+    let tableTicket    = $('#database-monitor-ticket'   );
+
+    tableLtParker .empty();
+    tableOccupancy.empty();
+    tableTicket   .empty();
+
+    for (let i = 0; i < dataLtParker['hydra:member'].length; i++) {
+        let ltParker = dataLtParker['hydra:member'][i];
+        tableLtParker.append(`
+            <tr>
+                <td>${ltParker['id']}</td>
+                <td>${ltParker['name']}</td>
+                <td>${ltParker['surename']}</td>
+            </tr>
+        `);
+    }
+
+    for (let i = 0; i < dataOccupancy['hydra:member'].length; i++) {
+        let occupancy = dataOccupancy['hydra:member'][i];
+
+        let exitDate = occupancy['exitDate'] !== undefined ? moment(occupancy['exitDate']).format('DD.MM.YYYY') : 'NULL';
+        let exitTime = occupancy['exitDate'] !== undefined ? moment(occupancy['exitDate']).format('HH:mm:ss')   : '';
+        let ltParker = occupancy['ltParker'] !== undefined ? /\/([0-9]+)$/.exec(occupancy['ltParker'])[1]       : 'NULL';
+
+        tableOccupancy.append(`
+            <tr>
+                <td>${occupancy['id']}</td>
+                <td>${occupancy['licensePlate']}</td>
+                <td>${moment(occupancy['entryDate']).format('DD.MM.YYYY')}<br>${moment(occupancy['entryDate']).format('HH:mm:ss')}</td>
+                <td>${exitDate}<br>${exitTime}</td>
+                <td>${ltParker}</td>
+            </tr>
+        `);
+    }
+
+    for (let i = 0; i < dataTicket['hydra:member'].length; i++) {
+        let ticket = dataTicket['hydra:member'][i];
+
+        let paidDate  = ticket['paid'] !== undefined ? moment(ticket['paid']).format('DD.MM.YYYY') : 'NULL';
+        let paidTime  = ticket['paid'] !== undefined ? moment(ticket['paid']).format('HH:mm:ss')   : '';
+        let occupancy = /\/([0-9]+)$/.exec(ticket['occupancy'])[1];
+
+        tableTicket.append(`
+            <tr>
+                <td>${ticket['id']}</td>
+                <td>${paidDate}<br>${paidTime}</td>
+                <td>${occupancy}</td>
+            </tr>
+        `);
+    }
+}
 </script>
 {% endblock customJs %}
