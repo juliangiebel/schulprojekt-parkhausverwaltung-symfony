@@ -80,7 +80,7 @@ function paymentPaid(event) {
     delay(2000)
         .then(() => bindings.instructionsModal.attribute("open", null))
         .then(() => bindings.loadingModal.attribute("open", true))
-        .then(() => Methodes.patch("/tickets", ticketID, {paid: moment().toISOString()}))
+        .then(() => Methodes.patch("/tickets", ticketID, {paid: moment().format()}))
         .then(response => {
 
             if(response.status != 200) {

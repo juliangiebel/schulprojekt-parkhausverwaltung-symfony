@@ -11,9 +11,11 @@
         <link href="{{ asset('css/base.css') }}" rel="stylesheet"/>
         <link href="{{ asset('css/colors.css') }}" rel="stylesheet"/>
         {% block stylesheets %}{% endblock %}
+        {% block customCss %}{% endblock customCss %}
     </head>
     <body>
         {% block body %}{% endblock %}
+        {% block htmlBody %}{% endblock htmlBody %}
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         <script src="{{ asset('js/lib/moment.js') }}"></script>
         <script>
@@ -40,5 +42,6 @@
             moment.locale('de');
         </script>
         {% block javascripts %}{% endblock %}
+        {% block customJs %}{% endblock customJs %}
     </body>
 </html>

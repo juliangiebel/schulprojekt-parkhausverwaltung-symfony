@@ -1,0 +1,313 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Automat Einfahrt{% endblock title %}
+
+{% block customCss %}
+<link rel="stylesheet" type="text/css" href="{{ libPath }}/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="{{ libPath }}/css/custom.css">
+<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+    .no-scroll-bar::-webkit-scrollbar {
+        display: none;
+    }
+    div#database-monitor table td {
+        padding: 5px;
+        color: #7affaa;
+    }
+</style>
+{% endblock customCss %}
+
+{% block htmlBody %}
+<div id="wrapper">
+    <div class="row">
+        <div class="col-12">
+            <div id="display">
+                <!-- Display header -->
+                <div id="display-header" class="row">
+                    <div id="display-date" class="col-4">
+                        Mo 01.01.1970
+                    </div>
+                    <div id="display-time" class="col-4">
+                        00:00:00
+                    </div>
+                    <div class="col-4">
+                        <i class="fa fa-server"></i>
+                        <i class="fa fa-wifi"></i>
+                    </div>
+                </div>
+                <!-- Display main -->
+                <div id="display-main" class="row">
+                    <div class="col-12">
+                        <div id="display-message" style="width: 100%;">Willkommen im Parkhaus!</div>
+                        <div style="width: 100%;">Dauerparker-ID: <span id="display-ltp-id"></span></div>
+                        <div style="width: 100%;">Kennzeichen: <span id="display-plate"></span></div>
+                    </div>
+                </div>
+                <!-- Display footer -->
+                <div id="display-footer" class="row">
+                    <div class="col-12">
+                        Verf&uuml;gbare Pl&auml;tze: <span id="available-space">101</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-9" style="margin-top: 20px;">
+            <label>Kennzeichen mit Zusatz</label>
+            <div id="form-group-plate" class="input-group">
+                <input type="text" class="form-control" name="district">
+                <span class="input-group-text"></span>
+                <input type="text" class="form-control" name="custom">
+                <span class="input-group-text"></span>
+                <input type="text" class="form-control" name="number">
+                <span class="input-group-text"></span>
+                <select class="custom-select" name="addition">
+                    <option value="" selected></option>
+                    <option value="E">E</option>
+                    <option value="H">H</option>
+                </select>
+            </div>
+        </div>
+        <div id="form-group-lt-parker" class="col-3" style="margin-top: 20px; text-align: center;">
+            <label for="form-long-term">Dauerparker-ID</label>
+            <input type="text" class="form-control" name="ltparkerid">
+        </div>
+        <div class="col-12" style="margin-top: 20px; text-align: center;">
+            <input type="submit" id="form-check-in" class="form-control btn btn-default btn-primary" value="Einchecken">
+        </div>
+    </div>
+</div>
+
+<div id="database-monitor" style="position: fixed; height: 100%; width: 400px;">
+    <div class="row">
+        <div class="col-12" style="background-color: #c9c9c9; text-align: center;">Long Term Parker</div>
+    </div>
+    <div class="row no-scroll-bar" style="height: 30%; overflow-y: scroll;">
+        <div class="col-12">
+            <table style="width: 100%;" id="database-monitor-lt-parker">
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12" style="background-color: #c9c9c9; text-align: center;">Occupancies</div>
+    </div>
+    <div class="row no-scroll-bar" style="height: 30%; overflow-y: scroll;">
+        <div class="col-12">
+            <table style="width: 100%;" id="database-monitor-occupancy">
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12" style="background-color: #c9c9c9; text-align: center;">Tickets</div>
+    </div>
+    <div class="row no-scroll-bar" style="height: 30%; overflow-y: scroll;">
+        <div class="col-12">
+            <table style="width: 100%;" id="database-monitor-ticket">
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock htmlBody %}
+
+{% block customJs %}
+<script type="text/javascript" src="{{ libPath }}/js/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="{{ libPath }}/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{{ libPath }}/js/LicensePlate.js"></script>
+<script type="text/javascript" src="{{ libPath }}/js/Display.js"></script>
+<script type="text/javascript" src="{{ libPath }}/js/Api.js"></script>
+<script>
+    window.onload = function() {
+
+        var display      = new Display('#display');
+        var licensePlate = new LicensePlate();
+        var api          = new Api();
+
+        display.updateDate();
+        display.updateTime();
+        updateDatabaseMonitor();
+
+        window.setInterval(() => {
+            display.updateDate();
+            display.updateTime();
+        }, 250);
+
+        window.setInterval(() => {
+            updateDatabaseMonitor();
+        }, 2500);
+
+        // Event listener: form for license plate
+        $('#form-group-plate').find('input, select').on('keyup change', () => {
+            let formTarget = $(event.target);
+            formTarget.val(formTarget.val().toUpperCase());
+            let updateData = {};
+            updateData[formTarget.attr('name')] = formTarget.val();
+
+            licensePlate.set(updateData);
+            display.setPlate(licensePlate);
+
+            if (!licensePlate.isValid()) {
+                display.setMessage('Geben Sie ein gültiges Kennzeichen ein!', {color: 'red'});
+            }
+            else if (!licensePlate.isLegal()) {
+                display.setMessage('Das Kennzeichen enthält nicht erlaubte Kombinationen!', {color: 'red'});
+            }
+            else {
+                display.setMessage('Kennzeichen ist gültig!', {color: 'green'});
+            }
+        });
+
+        // Event listener: form for long term
+        $('#form-group-lt-parker').find('input').on('keyup', () => {
+            display.setLtpId(event.target.value);
+        });
+
+        // Handle submit button click event
+        $('#form-check-in').on('click', () => {
+            // Check if license plate is valid and legal
+            if (!licensePlate.isValid() || !licensePlate.isLegal()) {
+                display.setMessage('Geben Sie ein gültiges Kennzeichen ein!', {color: 'red'});
+                return;
+            }
+
+            let ltParkerId = $('#form-group-lt-parker').find('input').val();
+            let isLtParker = (
+                   ltParkerId.length >= 1
+                && ltParkerId.match(/^[0-9]+$/)
+                && isLongTermParker(ltParkerId)
+            );
+
+            // Can long term parker enter
+            if (isLtParker && !canLtParkerEnter(ltParkerId)) {
+                display.setMessage('Sie können nur mit einem Auto gleichzeitig ins Parkhaus fahren!', {color: 'red'});
+                return;
+            }
+
+            // Can license plate enter
+            if (!canLicensePlateEnter(licensePlate.toString(false))) {
+                display.setMessage('Dieses Kennzeichen befindet sich bereits im Parkhaus!', {color: 'red'});
+                return;
+            }
+
+            let dataCreateOccupancy = {
+                licensePlate: licensePlate.toString(false),
+                entryDate: moment().format(),
+                exitDate: null,
+                ltParker: isLtParker ? '/api/lt_parkers/' + ltParkerId : null
+            };
+
+            let resCreateOccupancy = createOccupancy(dataCreateOccupancy);
+
+            if (!isLtParker) {
+                let resCreateTicket = createTicket({
+                    occupancy: resCreateOccupancy['@id'],
+                    paid: null
+                });
+            }
+
+            display.setMessage('Erfolgreich eingecheckt! Sie können ins Parkhaus fahren.', {color: 'green'});
+        });
+    };
+
+// Is the id a long term parker resource
+function isLongTermParker(id)
+{
+    let apiCall = (new Api()).callLongTermParkerById(id).send();
+    return apiCall.getStatus() === 200;
+}
+
+// Create an occupancy
+function createOccupancy(data)
+{
+    let apiCall = (new Api()).callCreateOccupancy(data).send();
+    return apiCall.getResponse();
+}
+
+// Create a ticket
+function createTicket(data)
+{
+    let apiCall = (new Api()).callCreateTicket(data).send();
+    return apiCall.getResponse();
+}
+
+// Can customer enter
+function canLtParkerEnter(ltParkerId)
+{
+    let apiCall = (new Api()).callOpenOccupancyWithLtParker(ltParkerId).send();
+//console.log(apiCall.getResponse());
+    return apiCall.getResponse()['hydra:totalItems'] == 0;
+}
+
+// Can license plate enter
+function canLicensePlateEnter(licensePlate)
+{
+    let apiCall = (new Api()).callOpenOccupancyWithLicensePlate(licensePlate).send();
+    return apiCall.getResponse()['hydra:totalItems'] == 0;
+}
+
+// Update database monitor
+function updateDatabaseMonitor()
+{
+    let baseUrl = '/schulprojekt-parkhausverwaltung-symfony/public/index.php';
+
+    let dataLtParker  = (new ApiCall('get', baseUrl + '/api/lt_parkers' )).send().getResponse();
+    let dataOccupancy = (new ApiCall('get', baseUrl + '/api/occupancies')).send().getResponse();
+    let dataTicket    = (new ApiCall('get', baseUrl + '/api/tickets'    )).send().getResponse();
+
+    // Update Display
+    let apiCall = (new Api()).callGetOccupancy({existsExitDate: false}).send();
+    $('#available-space').text((180 - apiCall.getResponse()['hydra:totalItems']));
+
+    let tableLtParker  = $('#database-monitor-lt-parker');
+    let tableOccupancy = $('#database-monitor-occupancy');
+    let tableTicket    = $('#database-monitor-ticket'   );
+
+    tableLtParker .empty();
+    tableOccupancy.empty();
+    tableTicket   .empty();
+
+    for (let i = 0; i < dataLtParker['hydra:member'].length; i++) {
+        let ltParker = dataLtParker['hydra:member'][i];
+        tableLtParker.append(`
+            <tr>
+                <td>${ltParker['id']}</td>
+                <td>${ltParker['name']}</td>
+                <td>${ltParker['surename']}</td>
+            </tr>
+        `);
+    }
+
+    for (let i = 0; i < dataOccupancy['hydra:member'].length; i++) {
+        let occupancy = dataOccupancy['hydra:member'][i];
+
+        let exitDate = occupancy['exitDate'] !== undefined ? moment(occupancy['exitDate']).format('DD.MM.YYYY') : 'NULL';
+        let exitTime = occupancy['exitDate'] !== undefined ? moment(occupancy['exitDate']).format('HH:mm:ss')   : '';
+        let ltParker = occupancy['ltParker'] !== undefined ? /\/([0-9]+)$/.exec(occupancy['ltParker'])[1]       : 'NULL';
+
+        tableOccupancy.append(`
+            <tr>
+                <td>${occupancy['id']}</td>
+                <td>${occupancy['licensePlate']}</td>
+                <td>${moment(occupancy['entryDate']).format('DD.MM.YYYY')}<br>${moment(occupancy['entryDate']).format('HH:mm:ss')}</td>
+                <td>${exitDate}<br>${exitTime}</td>
+                <td>${ltParker}</td>
+            </tr>
+        `);
+    }
+
+    for (let i = 0; i < dataTicket['hydra:member'].length; i++) {
+        let ticket = dataTicket['hydra:member'][i];
+
+        let paidDate  = ticket['paid'] !== undefined ? moment(ticket['paid']).format('DD.MM.YYYY') : 'NULL';
+        let paidTime  = ticket['paid'] !== undefined ? moment(ticket['paid']).format('HH:mm:ss')   : '';
+        let occupancy = /\/([0-9]+)$/.exec(ticket['occupancy'])[1];
+
+        tableTicket.append(`
+            <tr>
+                <td>${ticket['id']}</td>
+                <td>${paidDate}<br>${paidTime}</td>
+                <td>${occupancy}</td>
+            </tr>
+        `);
+    }
+}
+</script>
+{% endblock customJs %}
